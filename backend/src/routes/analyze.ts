@@ -37,9 +37,11 @@ analyzeRouter.post('/', async (req: Request, res: Response, next: NextFunction) 
     const meta = await analyzeVideo(normalizedUrl, ANALYZE_TIMEOUT_MS);
     return res.json(meta);
   } catch (e) {
-    const { code, message } = mapYtdlpError(e);
+    const { code, message, diagnostic } = mapYtdlpError(e);
+    console.warn(`[FlowFetch analyze] error=${code} message="${message}" diagnostic="${diagnostic || ''}"`);
     const status =
       code === 'timeout' ? 504
+      : code === 'rate_limit_exceeded' ? 429
       : code === 'unavailable_video' || code === 'upstream_rejected' ? 422
       : 500;
     // Don't call next(e) — we already mapped it to a safe response

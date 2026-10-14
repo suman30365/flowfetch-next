@@ -219,16 +219,17 @@ downloadRouter.post('/', downloadPrepareLimiter, async (req: Request, res: Respo
       job.emitter.emit('ready', job);
     } catch (e) {
       if (job.status === 'cancelled') return;
-      const { code, message } = mapYtdlpError(e);
+      const { code, message, diagnostic } = mapYtdlpError(e);
       const statusCode =
         code === 'timeout'                                              ? 504
         : code === 'unsupported_format'                                ? 400
+        : code === 'rate_limit_exceeded'                               ? 429
         : code === 'unavailable_video' || code === 'upstream_rejected' ? 422
         : 500;
 
       job.status = 'error';
       job.error = { error: code, message, statusCode };
-      console.error(`[FlowFetch background job error] id=${jobId} error=${code}: ${message}`);
+      console.error(`[FlowFetch background job error] id=${jobId} error=${code} message="${message}" diagnostic="${diagnostic || ''}"`);
       job.emitter.emit('error', job.error);
     } finally {
       jobQueue.release();

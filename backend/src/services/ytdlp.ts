@@ -3,8 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import { FormatInfo, StreamType } from '../types';
+import { sanitizeDiagnostic } from '../utils/errorMapper';
 
 const YTDLP = process.env.YTDLP_PATH ?? 'yt-dlp';
+const DEFAULT_EXTRACTOR_ARGS = process.env.YTDLP_EXTRACTOR_ARGS ?? 'youtube:player_client=android,web';
 
 /**
  * yt-dlp's --ffmpeg-location expects a DIRECTORY containing ffmpeg/ffprobe,
@@ -117,6 +119,7 @@ function runYtdlpJson(url: string, timeoutMs: number): Promise<string> {
       '--no-playlist',
       '--no-warnings',
       '--skip-download',
+      '--extractor-args', DEFAULT_EXTRACTOR_ARGS,
       url,
     ];
 
@@ -144,7 +147,7 @@ function runYtdlpJson(url: string, timeoutMs: number): Promise<string> {
       if (code === 0) {
         resolve(stdout);
       } else {
-        console.error(`[yt-dlp analyze] exit ${code}: ${stderr.slice(0, 500)}`);
+        console.error(`[yt-dlp analyze] exit ${code}: ${sanitizeDiagnostic(stderr.slice(0, 500))}`);
         reject(new Error(stderr));
       }
     });
@@ -355,6 +358,7 @@ export async function downloadFormat(
       '--no-warnings',
       '--progress',
       '--newline',
+      '--extractor-args', DEFAULT_EXTRACTOR_ARGS,
       '-f', formatSpec,
       '--ffmpeg-location', FFMPEG_DIR,
       '--merge-output-format', 'mp4',
@@ -442,7 +446,7 @@ export async function downloadFormat(
       settled = true;
 
       if (code !== 0) {
-        console.error(`[yt-dlp download] exit ${code}: ${stderr.slice(0, 500)}`);
+        console.error(`[yt-dlp download] exit ${code}: ${sanitizeDiagnostic(stderr.slice(0, 500))}`);
         cleanupJob(tmpDir, jobId);
         reject(new Error(stderr));
         return;
