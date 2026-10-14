@@ -59,7 +59,7 @@ export function mapYtdlpError(err: unknown): MappedError {
   ) {
     return {
       code: 'upstream_rejected',
-      message: 'YouTube detected automated traffic from this server (bot challenge). Please try again or use another video.',
+      message: 'YouTube detected automated traffic from this server (bot challenge). The cloud host IP is restricted by YouTube.',
       diagnostic,
     };
   }

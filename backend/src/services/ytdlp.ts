@@ -120,8 +120,14 @@ function runYtdlpJson(url: string, timeoutMs: number): Promise<string> {
       '--no-warnings',
       '--skip-download',
       '--extractor-args', DEFAULT_EXTRACTOR_ARGS,
-      url,
     ];
+
+    const cookiesPath = process.env.YTDLP_COOKIES_PATH;
+    if (cookiesPath && fs.existsSync(cookiesPath)) {
+      args.push('--cookies', path.resolve(cookiesPath));
+    }
+
+    args.push(url);
 
     const child = spawn(YTDLP, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
@@ -363,8 +369,14 @@ export async function downloadFormat(
       '--ffmpeg-location', FFMPEG_DIR,
       '--merge-output-format', 'mp4',
       '-o', outputTemplate,
-      url,
     ];
+
+    const cookiesPath = process.env.YTDLP_COOKIES_PATH;
+    if (cookiesPath && fs.existsSync(cookiesPath)) {
+      args.push('--cookies', path.resolve(cookiesPath));
+    }
+
+    args.push(url);
 
     console.log(`[yt-dlp download] format spec: ${formatSpec}`);
     const child = spawn(YTDLP, args, { stdio: ['ignore', 'pipe', 'pipe'] });
